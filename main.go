@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -76,8 +77,38 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Created Deployment %q.\n", result.GetObjectMeta().GetName())
+	fmt.Println("Line 80")
+	servicesClient := clientset.CoreV1().Services(apiv1.NamespaceDefault)
+	service := &apiv1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "abhishek-service",
+		},
+		Spec: apiv1.ServiceSpec{
+			Selector: map[string]string{
+				"app": "ab",
+			},
+			Ports: []apiv1.ServicePort{
+				{
+					Protocol:   apiv1.ProtocolTCP,
+					Port:       80,
+					TargetPort: intstr.FromInt(80),
+				},
+			},
+			Type: apiv1.ServiceTypeClusterIP,
+		},
+	}
+
+	fmt.Println("I am creating the service for you .......")
+	_, err = servicesClient.Create(context.TODO(), service, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Created Service %q.\n", service.GetObjectMeta().GetName())
+
+	// Wait for user to exit
 	prompt()
 }
+
 func prompt() {
 	fmt.Printf("-> Press Return key to stop.")
 	scanner := bufio.NewScanner(os.Stdin)
