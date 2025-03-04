@@ -26,15 +26,19 @@ func main() {
 	}
 	flag.Parse()
 
+	//Configuring the kubeconfiug file
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err)
 	}
 
+	//creating the client
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err)
 	}
+
+	//creating the deployment
 	deploymentsClient := clientset.AppsV1().Deployments(apiv1.NamespaceDefault)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -77,7 +81,8 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Created Deployment %q.\n", result.GetObjectMeta().GetName())
-	fmt.Println("Line 80")
+	prompt("Press a button to create the service")
+	//creating the kubernetes service
 	servicesClient := clientset.CoreV1().Services(apiv1.NamespaceDefault)
 	service := &apiv1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -105,12 +110,11 @@ func main() {
 	}
 	fmt.Printf("Created Service %q.\n", service.GetObjectMeta().GetName())
 
-	// Wait for user to exit
-	prompt()
+	prompt("Press a button to exit")
 }
 
-func prompt() {
-	fmt.Printf("-> Press Return key to stop.")
+func prompt(message string) {
+	fmt.Println(message)
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		break
